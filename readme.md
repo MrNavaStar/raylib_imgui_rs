@@ -7,7 +7,8 @@
 ## Setup:
 ### In Cargo.toml:
 ```
-# TODO: Include Cargo.toml instructions here
+[dependencies]
+raylib_imgui_rs = "<Latest version here>"
 ```
 
 ### In main.rs:
