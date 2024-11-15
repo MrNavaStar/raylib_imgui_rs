@@ -9,6 +9,10 @@ repository = "https://github.com/Fullbrik/raylib_imgui_rs"
 readme = "readme.md"
 keywords = ["gamedev", "graphics", "raylib", "imgui"]
 
+exclude = [
+    ".idea/*"
+]
+
 [dependencies]
 raylib = "5.0"
 imgui = "0.12"
