@@ -49,11 +49,7 @@ impl Renderer {
 	}
 
 	fn update_display(&mut self, imgui_context: &mut imgui::Context, raylib_handle: &mut RaylibHandle) {
-		let resolution_scale = if !raylib_handle.get_window_state().window_highdpi() {
-			Vector2::new(1.0, 1.0)
-		} else {
-			raylib_handle.get_window_scale_dpi()
-		};
+		let resolution_scale = raylib_handle.get_window_scale_dpi();
 
 		let io = imgui_context.io_mut();
 
@@ -211,7 +207,7 @@ impl Renderer {
 	}
 
 	/// Render the frame. Call this after drawing all your imgui stuff.
-	pub fn render(&self, imgui_context: &mut imgui::Context, draw: &mut RaylibDrawHandle) {
+	pub fn render(&self, imgui_context: &mut imgui::Context, _draw: &mut RaylibDrawHandle) {
 		let io = imgui_context.io();
 		let display_framebuffer_scale = io.display_framebuffer_scale;
 		let display_size = io.display_size;
@@ -241,7 +237,6 @@ impl Renderer {
 								cmd_params.clip_rect[3] - (cmd_params.clip_rect[1] - draw_data.display_pos[1]),
 								display_framebuffer_scale,
 								display_size,
-								draw
 							);
 
 							Self::render_triangles(count, cmd_params.idx_offset, cmd_params.vtx_offset, draw_list.idx_buffer(), draw_list.vtx_buffer(), cmd_params.texture_id);
@@ -271,20 +266,14 @@ impl Renderer {
 		}
 	}
 
-	unsafe fn enable_scissor(x: f32, y: f32, w: f32, h: f32, display_framebuffer_scale: [f32; 2], display_size: [f32; 2], draw: &mut RaylibDrawHandle) {
+	unsafe fn enable_scissor(x: f32, y: f32, w: f32, h: f32, display_framebuffer_scale: [f32; 2], display_size: [f32; 2]) {
 		ffi::rlEnableScissorTest();
 
-		let scale = if !draw.get_window_state().window_highdpi() {
-			[1.0, 1.0]
-		} else {
-			display_framebuffer_scale
-		};
-
 		ffi::rlScissor(
-			(x * scale[0]) as _,
-			((display_size[1] - (y + h).floor()) * scale[1]) as _,
-			(w * scale[0]) as _,
-			(h * scale[1]) as _,
+			(x * display_framebuffer_scale[0]) as _,
+			((display_size[1] - (y + h).floor()) * display_framebuffer_scale[1]) as _,
+			(w * display_framebuffer_scale[0]) as _,
+			(h * display_framebuffer_scale[1]) as _,
 		);
 	}
 
