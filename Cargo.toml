@@ -1,6 +1,6 @@
 [package]
 name = "raylib_imgui_rs"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license-file = "LICENSE.txt"
 description = "A Raylib integration with DearImGui in Rust!"
@@ -14,5 +14,5 @@ exclude = [
 ]
 
 [dependencies]
-raylib = "5.0"
+raylib = "5.5"
 imgui = "0.12"

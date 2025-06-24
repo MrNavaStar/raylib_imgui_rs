@@ -207,9 +207,15 @@ impl Renderer {
 	}
 
 	/// Render the frame. Call this after drawing all your imgui stuff.
-	pub fn render(&self, imgui_context: &mut imgui::Context, _draw: &mut RaylibDrawHandle) {
+	pub fn render(&self, imgui_context: &mut imgui::Context, draw: &mut RaylibDrawHandle) {
 		let io = imgui_context.io();
-		let display_framebuffer_scale = io.display_framebuffer_scale;
+		
+		let display_framebuffer_scale = if draw.get_window_state().window_highdpi() {
+			io.display_framebuffer_scale
+		} else { 
+			[1.0, 1.0]
+		};
+		
 		let display_size = io.display_size;
 		let draw_data = imgui_context.render();
 
@@ -271,7 +277,7 @@ impl Renderer {
 
 		ffi::rlScissor(
 			(x * display_framebuffer_scale[0]) as _,
-			((display_size[1] - (y + h).floor()) * display_framebuffer_scale[1]) as _,
+			(display_size[1] - ((y + h).floor() * display_framebuffer_scale[1])) as _,
 			(w * display_framebuffer_scale[0]) as _,
 			(h * display_framebuffer_scale[1]) as _,
 		);
