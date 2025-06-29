@@ -3,7 +3,6 @@ mod maps;
 mod clipboard;
 
 use std::ptr;
-use std::ptr::NonNull;
 use raylib::prelude::*;
 use imgui::{BackendFlags, ConfigFlags, DrawCmd, DrawIdx, DrawVert, Key, MouseCursor, TextureId};
 use imgui::internal::{RawCast, RawWrapper};
@@ -14,6 +13,8 @@ use crate::maps::{KEYBOARD_MAP, MOUSE_CURSOR_MAP};
 pub struct Renderer {
 	current_cursor: Option<MouseCursor>,
 	last_frame_state: FrameState,
+
+	font_texture: Texture2D,
 }
 
 impl Renderer {
@@ -23,11 +24,13 @@ impl Renderer {
 
 		Self::setup_context(imgui_context);
 
-		Self::reload_fonts(imgui_context, raylib_handle, raylib_thread);
+		let font_texture = Self::reload_fonts_impl(imgui_context, raylib_handle, raylib_thread);
 
 		Self {
 			current_cursor: Some(MouseCursor::Arrow),
 			last_frame_state: FrameState::new(raylib_handle),
+
+			font_texture,
 		}
 	}
 
@@ -286,14 +289,8 @@ impl Renderer {
 	unsafe fn render_triangles(count: usize, indx_start: usize, vtx_start: usize, indx_buffer: &[DrawIdx], vert_buffer: &[DrawVert], texture_id: TextureId) {
 		if count < 3 { return; }
 
-		let texture_id = if let Some(texture) = NonNull::new(texture_id.id() as *mut Texture2D) {
-			texture.as_ref().id
-		} else {
-			0
-		};
-
 		ffi::rlBegin(ffi::RL_TRIANGLES as _);
-		ffi::rlSetTexture(texture_id);
+		ffi::rlSetTexture(texture_id.id() as _);
 
 		for i in 0..count {
 			let indx = indx_buffer[indx_start + i] as usize;
@@ -309,23 +306,36 @@ impl Renderer {
 		ffi::rlVertex2f(vert.pos[0], vert.pos[1]);
 	}
 
-	pub fn reload_fonts(imgui_context: &mut imgui::Context, raylib_handle: &mut RaylibHandle, raylib_thread: &RaylibThread) {
+	pub fn reload_fonts(&mut self, imgui_context: &mut imgui::Context, raylib_handle: &mut RaylibHandle, raylib_thread: &RaylibThread) {
+		self.font_texture = Self::reload_fonts_impl(imgui_context, raylib_handle, raylib_thread);
+	}
+
+	fn reload_fonts_impl(imgui_context: &mut imgui::Context, raylib_handle: &mut RaylibHandle, raylib_thread: &RaylibThread) -> Texture2D {
 		let atlas = imgui_context.fonts().build_rgba32_texture();
 		let image = Image::gen_image_color(atlas.width as _, atlas.height as _, Color::WHITE);
 		
 		unsafe {
 			ptr::copy(atlas.data.as_ptr(), image.data() as _, atlas.width as usize * atlas.height as usize * 4);
 
-			if let Some(font_texture) = NonNull::new(imgui_context.fonts().tex_id.id() as *mut Texture2D) {
-				if font_texture.as_ref().id != 0 {
-					drop(Box::from_raw(font_texture.as_ptr()));
-				}
-			}
-
-			let font_texture = Box::new(raylib_handle.load_texture_from_image(raylib_thread, &image).unwrap()); // TODO: Don't unwrap
+			let font_texture = raylib_handle.load_texture_from_image(raylib_thread, &image).unwrap(); // TODO: Don't unwrap
 			drop(image);
 
-			imgui_context.fonts().tex_id = TextureId::from(Box::into_raw(font_texture));
+			imgui_context.fonts().tex_id = TextureId::from(font_texture.id as usize);
+
+			font_texture
 		}
+	}
+}
+
+pub trait TextureExt {
+	fn imgui_image(&self) -> imgui::Image;
+}
+
+impl TextureExt for Texture2D {
+	fn imgui_image(&self) -> imgui::Image {
+		imgui::Image::new(
+			TextureId::new(self.id as _),
+			[self.width() as _, self.height() as _],
+		)
 	}
 }
