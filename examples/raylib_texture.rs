@@ -26,9 +26,7 @@ fn main() {
 			let ui = imgui.new_frame();
 
 			if let Some(_token) = ui.window("Texture").begin() {
-				// imgui_image creates an imgui::Image from a texture
-				texture.imgui_image()
-					.build(&ui);
+				ui.image(&texture);
 			}
 		}
 

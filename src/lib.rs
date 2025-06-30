@@ -4,7 +4,7 @@ mod clipboard;
 
 use std::ptr;
 use raylib::prelude::*;
-use imgui::{BackendFlags, ConfigFlags, DrawCmd, DrawIdx, DrawVert, Key, MouseCursor, TextureId};
+use imgui::{BackendFlags, ConfigFlags, DrawCmd, DrawIdx, DrawVert, Key, MouseCursor, TextureId, Ui};
 use imgui::internal::{RawCast, RawWrapper};
 use crate::clipboard::ClipboardBackend;
 use crate::frame_state::FrameState;
@@ -327,15 +327,40 @@ impl Renderer {
 	}
 }
 
-pub trait TextureExt {
-	fn imgui_image(&self) -> imgui::Image;
+pub trait TextureLike {
+	fn id(&self) -> u32;
+	fn size(&self) -> [f32; 2];
 }
 
-impl TextureExt for Texture2D {
-	fn imgui_image(&self) -> imgui::Image {
+impl TextureLike for Texture2D {
+	fn id(&self) -> u32 {
+		self.id
+	}
+
+	fn size(&self) -> [f32; 2] {
+		[self.width as f32, self.height as f32]
+	}
+}
+
+impl TextureLike for RenderTexture2D {
+	fn id(&self) -> u32 {
+		self.texture.id
+	}
+
+	fn size(&self) -> [f32; 2] {
+		[self.texture.width as f32, self.texture.height as f32]
+	}
+}
+
+pub trait TextureExt {
+	fn image<T: TextureLike>(&self, texture: &T);
+}
+
+impl TextureExt for Ui {
+	fn image<T: TextureLike>(&self, texture: &T) {
 		imgui::Image::new(
-			TextureId::new(self.id as _),
-			[self.width() as _, self.height() as _],
-		)
+			TextureId::new(texture.id() as _),
+			texture.size(),
+		).build(self);
 	}
 }
