@@ -1,6 +1,7 @@
 use imgui::{Context, FontSource};
 use raylib::prelude::*;
-use raylib_imgui_rs::{Renderer, TextureExt};
+use raylib_imgui_rs::{Renderer};
+use raylib_imgui_rs::image::ImageExt;
 
 fn main() {
 	let (mut rl, thread) = raylib::init()
@@ -26,6 +27,7 @@ fn main() {
 			let ui = imgui.new_frame();
 
 			if let Some(_token) = ui.window("Texture").begin() {
+				ui.image_scaled(&texture, 128, 128);
 				ui.image(&texture);
 			}
 		}

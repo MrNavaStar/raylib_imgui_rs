@@ -1,6 +1,7 @@
 mod frame_state;
 mod maps;
 mod clipboard;
+pub mod image;
 
 use std::ptr;
 use raylib::prelude::*;
@@ -324,43 +325,5 @@ impl Renderer {
 
 			font_texture
 		}
-	}
-}
-
-pub trait TextureLike {
-	fn id(&self) -> u32;
-	fn size(&self) -> [f32; 2];
-}
-
-impl TextureLike for Texture2D {
-	fn id(&self) -> u32 {
-		self.id
-	}
-
-	fn size(&self) -> [f32; 2] {
-		[self.width as f32, self.height as f32]
-	}
-}
-
-impl TextureLike for RenderTexture2D {
-	fn id(&self) -> u32 {
-		self.texture.id
-	}
-
-	fn size(&self) -> [f32; 2] {
-		[self.texture.width as f32, self.texture.height as f32]
-	}
-}
-
-pub trait TextureExt {
-	fn image<T: TextureLike>(&self, texture: &T);
-}
-
-impl TextureExt for Ui {
-	fn image<T: TextureLike>(&self, texture: &T) {
-		imgui::Image::new(
-			TextureId::new(texture.id() as _),
-			texture.size(),
-		).build(self);
 	}
 }
