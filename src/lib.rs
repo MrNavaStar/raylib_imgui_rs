@@ -41,7 +41,8 @@ impl Renderer {
 		let io = imgui_context.io_mut();
 		io.backend_flags.insert(BackendFlags::HAS_GAMEPAD | BackendFlags::HAS_SET_MOUSE_POS | BackendFlags::HAS_MOUSE_CURSORS);
 		io.mouse_pos = [0.0, 0.0];
-		io.display_size = [0.0, 0.0];
+		io.display_size = [1.0, 1.0];
+		io.display_framebuffer_scale = [1.0, 1.0];
 		io.delta_time = 1.0;
 
 		imgui_context.set_clipboard_backend(ClipboardBackend);
