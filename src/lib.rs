@@ -42,6 +42,7 @@ impl Renderer {
 		io.backend_flags.insert(BackendFlags::HAS_GAMEPAD | BackendFlags::HAS_SET_MOUSE_POS | BackendFlags::HAS_MOUSE_CURSORS);
 		io.mouse_pos = [0.0, 0.0];
 		io.display_size = [0.0, 0.0];
+		io.delta_time = 0.0001;
 
 		imgui_context.set_clipboard_backend(ClipboardBackend);
 	}
